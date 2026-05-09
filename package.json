@@ -1,0 +1,21 @@
+{
+  "name": "chatapp-notification",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Notification microservice for chat message events",
+  "workspaces": ["services/*"],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev --workspace=services/notification-service",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
