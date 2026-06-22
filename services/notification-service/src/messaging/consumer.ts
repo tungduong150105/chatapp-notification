@@ -1,10 +1,10 @@
 import {
   CONVERSATION_EVENTS_EXCHANGE,
   MESSAGE_CREATED_ROUTING_KEY,
-  messageCreatedEventSchema,
 } from '@chatapp/common';
 
 import { env } from '@/config/env';
+import { parseMessageCreatedEvent } from '@/messaging/parse-message-created';
 import { notifyMessageCreatedRecipients } from '@/notify/handler';
 import { logger } from '@/utils/logger';
 
@@ -39,27 +39,19 @@ export const startConsumer = async (): Promise<void> => {
 
     void (async () => {
       const raw = message.content.toString('utf-8');
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(raw) as unknown;
-      } catch {
-        logger.error({ raw }, 'Invalid JSON for message.created');
-        ch.nack(message, false, false);
-        return;
-      }
-
-      const parsedEvent = messageCreatedEventSchema.safeParse(parsed);
-      if (!parsedEvent.success) {
-        logger.error(
-          { issues: parsedEvent.error.format(), raw },
-          'Invalid message.created event shape',
-        );
+      const parsedEvent = parseMessageCreatedEvent(raw);
+      if (!parsedEvent.ok) {
+        if (parsedEvent.reason === 'invalid_json') {
+          logger.error({ raw }, 'Invalid JSON for message.created');
+        } else {
+          logger.error({ raw }, 'Invalid message.created event shape');
+        }
         ch.nack(message, false, false);
         return;
       }
 
       try {
-        await notifyMessageCreatedRecipients(parsedEvent.data);
+        await notifyMessageCreatedRecipients(parsedEvent.event);
         ch.ack(message);
       } catch (error: unknown) {
         logger.error({ err: error }, 'Failed to handle message.created');

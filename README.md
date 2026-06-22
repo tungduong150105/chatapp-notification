@@ -12,7 +12,7 @@ chatapp-notification/
 └── .env.example
 ```
 
-`@chatapp/common` trong `services/notification-service` khai báo `file:../../../chatapp-conversation/packages/common` — cần repo **`chatapp-conversation`** cùng cấp (hoặc chỉnh đường dẫn). Docker build kỳ vọng layout tương tự (xem `Dockerfile`).
+`@chatapp/common` trong `services/notification-service` khai báo `file:../../chatapp-conversation/packages/common` — clone **`chatapp-conversation`** vào thư mục `chatapp-conversation/` (hoặc `ln -s ../chatapp-conversation chatapp-conversation` khi dev local sibling repos).
 
 Luồng khởi động: **`startConsumer()`** (RabbitMQ); sau đó HTTP **`GET /health`** trên `NOTIFICATION_SERVICE_PORT` (mặc định **4010**).
 

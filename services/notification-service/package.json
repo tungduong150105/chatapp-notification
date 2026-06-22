@@ -8,11 +8,14 @@
     "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json --resolve-full-paths",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
+    "lint": "eslint \"src/**/*.ts\" \"e2e/**/*.ts\"",
     "typecheck": "tsc --noEmit --project tsconfig.json",
-    "test": "echo \"No tests yet\""
+    "test:unit": "vitest run --config vitest.config.ts src",
+    "test:e2e": "vitest run --config vitest.config.ts e2e",
+    "test": "npm run test:unit && npm run test:e2e"
   },
   "dependencies": {
-    "@chatapp/common": "file:../../../chatapp-conversation/packages/common",
+    "@chatapp/common": "file:../../chatapp-conversation/packages/common",
     "amqplib": "^0.10.9",
     "dotenv": "^17.2.3",
     "express": "^5.1.0"
@@ -20,6 +23,9 @@
   "devDependencies": {
     "@types/amqplib": "^0.10.8",
     "@types/express": "^5.0.5",
-    "tsc-alias": "^1.8.16"
+    "@types/supertest": "^6.0.3",
+    "supertest": "^7.1.4",
+    "tsc-alias": "^1.8.16",
+    "vitest": "^3.2.4"
   }
 }
