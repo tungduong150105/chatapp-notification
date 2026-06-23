@@ -1,29 +1,53 @@
 import type { MessageCreatedEvent } from '@chatapp/common';
-
+import { NOTIFICATION_CREATED_ROUTING_KEY } from '@chatapp/common';
 import { logger } from '@/utils/logger';
+import { publishNotificationCreated, publishMessageFailed } from '@/messaging/publisher';
+import { MESSAGE_FAILED_ROUTING_KEY } from '@chatapp/common';
 
-/**
- * Phase 1: log per recipient. Outgoing **delivered** ticks are driven by:
- * - Recipient client: `POST .../receipts/notify-received` after fetching/listing messages
- * - Future: push provider delivery → `recordDeliveryAckOnChatService` per successful device
- *
- * We intentionally do **not** call chat-service on every `message.created` so “delivered”
- * always reflects an explicit ack, not a presence guess.
- */
 export const notifyMessageCreatedRecipients = async (event: MessageCreatedEvent): Promise<void> => {
   const { payload } = event;
+  const sagaId = payload.sagaId ?? payload.messageId;
 
-  for (const userId of payload.recipientUserIds) {
-    logger.info(
-      {
-        notificationType: 'message.created',
-        recipientUserId: userId,
+  try {
+    for (const userId of payload.recipientUserIds) {
+      logger.info(
+        {
+          notificationType: 'message.created',
+          recipientUserId: userId,
+          messageId: payload.messageId,
+          conversationId: payload.conversationId,
+          senderId: payload.senderId,
+          sagaId,
+          occurredAt: event.occurredAt,
+        },
+        'Notifying user about new message',
+      );
+      // TODO: integrate push provider (FCM/APNs) here
+    }
+
+    // Saga step complete — emit notification.created
+    publishNotificationCreated({
+      type: NOTIFICATION_CREATED_ROUTING_KEY,
+      occurredAt: new Date().toISOString(),
+      payload: {
+        sagaId,
         messageId: payload.messageId,
         conversationId: payload.conversationId,
-        senderId: payload.senderId,
-        occurredAt: event.occurredAt,
+        recipientUserIds: payload.recipientUserIds,
       },
-      'Notify user about new conversation message (phase 1: log only; delivery ack via client or future push)',
-    );
+    });
+  } catch (err) {
+    logger.error({ err, sagaId }, 'Notification step failed — emitting message.failed');
+    publishMessageFailed({
+      type: MESSAGE_FAILED_ROUTING_KEY,
+      occurredAt: new Date().toISOString(),
+      payload: {
+        sagaId,
+        messageId: payload.messageId,
+        conversationId: payload.conversationId,
+        failedStep: 'notification',
+        reason: err instanceof Error ? err.message : 'Unknown error',
+      },
+    });
   }
 };

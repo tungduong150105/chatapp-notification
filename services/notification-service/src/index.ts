@@ -3,10 +3,12 @@ import { createServer } from 'http';
 import { createApp } from '@/app';
 import { env } from '@/config/env';
 import { startConsumer, stopConsumer } from '@/messaging/consumer';
+import { startPublisher, stopPublisher } from '@/messaging/publisher';
 import { logger } from '@/utils/logger';
 
 const main = async () => {
   try {
+    await startPublisher();
     await startConsumer();
 
     const app = createApp();
@@ -19,7 +21,7 @@ const main = async () => {
 
     const shutdown = () => {
       logger.info('Shutting down notification service...');
-      void stopConsumer()
+      void Promise.all([stopConsumer(), stopPublisher()])
         .catch((error: unknown) => {
           logger.error({ error }, 'Error during shutdown');
         })
