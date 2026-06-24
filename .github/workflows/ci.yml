@@ -35,7 +35,7 @@ jobs:
       - name: Clone chatapp-conversation
         run: git clone --depth=1 --branch feat/upgrade https://github.com/tungduong150105/chatapp-conversation.git ../chatapp-conversation
       - name: Build @chatapp/common
-        run: npm ci && npm run build --workspace=@chatapp/common
+        run: npm install && npm run build --workspace=@chatapp/common
         working-directory: ../chatapp-conversation
       - run: npm ci
       - run: npm run typecheck
@@ -50,7 +50,7 @@ jobs:
       - name: Clone chatapp-conversation
         run: git clone --depth=1 --branch feat/upgrade https://github.com/tungduong150105/chatapp-conversation.git ../chatapp-conversation
       - name: Build @chatapp/common
-        run: npm ci && npm run build --workspace=@chatapp/common
+        run: npm install && npm run build --workspace=@chatapp/common
         working-directory: ../chatapp-conversation
       - run: npm ci
       - run: npm run test:unit
