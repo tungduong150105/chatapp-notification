@@ -67,9 +67,11 @@ USER nodeuser
 
 ENV NODE_ENV=production
 ENV NOTIFICATION_SERVICE_PORT=4010
+ENV OTEL_SERVICE_NAME=notification-service
 
 EXPOSE 4010
+EXPOSE 9464
 
 WORKDIR /workspace/chatapp-notification/services/notification-service
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "--import", "./dist/tracing.js", "dist/index.js"]

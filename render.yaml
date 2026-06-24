@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: chatapp-notification-service
+    env: docker
+    dockerfilePath: ./Dockerfile.render
+    dockerContext: .
+    branch: main
+    healthCheckPath: /health
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NOTIFICATION_SERVICE_PORT
+        value: "4010"
+      - key: RABBITMQ_URL
+        sync: false
+      - key: CHAT_SERVICE_URL
+        sync: false
+      - key: INTERNAL_API_TOKEN
+        sync: false
