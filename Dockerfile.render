@@ -1,0 +1,74 @@
+# syntax=docker/dockerfile:1
+# Render-compatible build.
+# Build context: chatapp-notification repo root.
+# Clones chatapp-conversation to resolve @chatapp/common.
+
+FROM node:22-alpine AS base
+WORKDIR /workspace
+
+FROM base AS deps
+RUN apk add --no-cache git
+
+RUN git clone --depth=1 https://github.com/chicuongvo/chatapp-conversation.git \
+    /workspace/chatapp-conversation
+
+COPY package.json package-lock.json ./chatapp-notification/
+COPY services/notification-service/package.json ./chatapp-notification/services/notification-service/
+
+RUN ln -sf /workspace/chatapp-conversation /workspace/chatapp-notification/chatapp-conversation
+WORKDIR /workspace/chatapp-notification
+RUN npm ci
+
+FROM deps AS builder
+WORKDIR /workspace
+
+COPY tsconfig.base.json ./chatapp-notification/tsconfig.base.json
+COPY tsconfig.json ./chatapp-notification/tsconfig.json
+COPY services ./chatapp-notification/services
+
+RUN ln -sf /workspace/chatapp-conversation /workspace/chatapp-notification/chatapp-conversation
+
+WORKDIR /workspace/chatapp-conversation/packages/common
+RUN npm install && npm run build
+
+WORKDIR /workspace/chatapp-notification
+RUN npm run build --workspace=services/notification-service
+
+FROM node:22-alpine AS production
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nodeuser
+
+WORKDIR /workspace/chatapp-notification
+
+COPY package.json package-lock.json ./
+COPY services/notification-service/package.json ./services/notification-service/
+
+COPY --from=builder /workspace/chatapp-conversation/packages/common/package.json \
+    /workspace/chatapp-conversation/packages/common/package.json
+
+RUN ln -sf /workspace/chatapp-conversation /workspace/chatapp-notification/chatapp-conversation
+RUN npm ci --omit=dev
+
+COPY --from=builder /workspace/chatapp-conversation/packages/common/dist \
+    /workspace/chatapp-conversation/packages/common/dist
+COPY --from=builder /workspace/chatapp-notification/services/notification-service/dist \
+    ./services/notification-service/dist
+
+WORKDIR /workspace/chatapp-conversation/packages/common
+RUN npm install --omit=dev
+
+WORKDIR /workspace/chatapp-notification
+
+RUN chown -R nodeuser:nodejs /workspace/chatapp-notification /workspace/chatapp-conversation
+USER nodeuser
+
+ENV NODE_ENV=production
+ENV NOTIFICATION_SERVICE_PORT=4010
+ENV OTEL_SERVICE_NAME=notification-service
+
+EXPOSE 4010
+EXPOSE 9464
+
+WORKDIR /workspace/chatapp-notification/services/notification-service
+CMD ["node", "--import", "./dist/tracing.js", "dist/index.js"]
