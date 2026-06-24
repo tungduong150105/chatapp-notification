@@ -6,12 +6,16 @@ services:
     container_name: chatapp-notification-service
     ports:
       - "${NOTIFICATION_SERVICE_PORT:-4010}:4010"
+      - "9469:9464"
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT:-4010}
       RABBITMQ_URL: ${RABBITMQ_URL:-amqp://guest:guest@rabbitmq:5672}
-      CHAT_SERVICE_URL: ${CHAT_SERVICE_URL:-http://chat-service:4000}
+      CHAT_SERVICE_URL: ${CHAT_SERVICE_URL:-http://chat-service:4002}
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-}
+      OTEL_SERVICE_NAME: notification-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318/v1/traces}
+      OTEL_METRICS_PORT: 9464
     networks:
       - chatapp-network
     healthcheck:
