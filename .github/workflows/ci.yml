@@ -33,7 +33,7 @@ jobs:
         with:
           node-version: '22'
       - name: Clone chatapp-conversation
-        run: git clone --depth=1 https://github.com/tungduong150105/chatapp-conversation.git ../chatapp-conversation
+        run: git clone --depth=1 --branch feat/upgrade https://github.com/tungduong150105/chatapp-conversation.git ../chatapp-conversation
       - name: Build @chatapp/common
         run: npm ci && npm run build --workspace=@chatapp/common
         working-directory: ../chatapp-conversation
@@ -48,7 +48,7 @@ jobs:
         with:
           node-version: '22'
       - name: Clone chatapp-conversation
-        run: git clone --depth=1 https://github.com/tungduong150105/chatapp-conversation.git ../chatapp-conversation
+        run: git clone --depth=1 --branch feat/upgrade https://github.com/tungduong150105/chatapp-conversation.git ../chatapp-conversation
       - name: Build @chatapp/common
         run: npm ci && npm run build --workspace=@chatapp/common
         working-directory: ../chatapp-conversation
