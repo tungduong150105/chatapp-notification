@@ -16,6 +16,11 @@
   },
   "dependencies": {
     "@chatapp/common": "file:../../../chatapp-conversation/packages/common",
+    "@opentelemetry/auto-instrumentations-node": "^0.56.0",
+    "@opentelemetry/exporter-prometheus": "^0.57.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.57.0",
+    "@opentelemetry/resources": "^1.30.0",
+    "@opentelemetry/sdk-node": "^0.57.0",
     "amqplib": "^0.10.9",
     "dotenv": "^17.2.3",
     "express": "^5.1.0"
